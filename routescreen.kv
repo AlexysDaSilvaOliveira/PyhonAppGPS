@@ -1,0 +1,63 @@
+#:include routemapview.kv
+<RouteScreen>:
+    BoxLayout:
+        orientation : 'vertical'
+
+        MDCard:
+            size_hint_y:None
+            height:"200dp"
+            orientation:"vertical"
+            padding:"5dp"
+
+            OneLineIconListItem:
+                text: "Itinéraire"
+                IconLeftWidget:
+                    icon: "keyboard-backspace"
+                    on_release:
+                        app.change_screen("home_screen")
+
+            TwoLineIconListItem:
+                id:adresseAct
+                text_color: 1,0,1,1
+                text: "Ma position"
+                divider:None
+                secondary_text: "Départ"
+                IconLeftWidget:
+                    icon: "home-circle-outline"
+
+            TwoLineIconListItem:
+                id:adresseDest
+                text: "Entrer une adresse"
+                secondary_text: "Arrivée"
+                IconLeftWidget:
+                    icon: "map-marker-radius"
+
+        RouteMapView:
+            size_hint: 1, 1
+            id: mapview
+
+
+        BoxLayout:
+            orientation:'vertical'
+            pos_hint: {"top": 0.35, "right": 1}
+
+            MDToolbar:
+                id:toolbarItineraire
+                title:"Étapes de la navigation"
+                right_action_items: [['information-outline', lambda x:()]]
+
+            TwoLineIconListItem:
+                id:distTemps
+                text_color: 1,0,1,1
+                text: "42km"
+                secondary_text: "42min"
+                IconLeftWidget:
+                    icon: "map-marker-distance"
+
+            ScrollView:
+                GridLayout:
+                    id:etapesItineraire
+                    cols: 1
+                    size_hint_y: None
+                    height: self.minimum_height
+

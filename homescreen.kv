@@ -1,0 +1,104 @@
+#:import utils kivy.utils
+#:import MDFloatingActionButton kivymd.uix.button.MDFloatingActionButton
+#:include homemapview.kv
+
+<HomeScreen>:
+    FloatLayout:
+        HomeMapView:
+            pos_hint: {"top": 1, "left": 1}
+            size_hint: 1, 1
+            id: mapview
+
+        MDCard:
+            size_hint:0.97,None
+            border_radius: 25
+            radius: [25]
+            pos_hint: {"center_x":0.5, "center_y":0.95}
+            height: self.minimum_height
+            canvas.before:
+                Color:
+                    rgba: app.theme_cls.primary_color
+                RoundedRectangle:
+                    radius: [25]
+                    size: self.size
+                    pos: self.pos
+
+
+            MDIconButton:
+                icon: 'magnify'
+
+            MDTextField:
+                id: search_field
+                size_hint: 1, None
+                on_text: app.print_delete_button()
+                on_text_validate: app.search_adresse(self.text)
+
+            MDIconButton:
+                id:delete_search
+                icon:""
+                on_release:
+                    app.delete_search()
+
+        MDFloatingActionButton:
+            icon: "crosshairs-gps"
+            pos_hint: {"top": 0.2, "right": 0.98}
+            md_bg_color: rgba(66,133,244)
+            text_color : [1,1,1,1]
+            on_release:
+                app.center_map()
+                #app.change_screen("route_screen")
+
+
+        MDFloatingActionButton:
+            icon: "directions"
+            pos_hint: {"top": 0.3, "right": 0.98}
+            text_color : [1,1,1,1]
+            md_bg_color: rgba(66,133,244)
+            on_release:
+                app.search_menu.open()
+
+        MDFloatingActionButton:
+            id: gpsStatus
+            icon: "map-marker-off"
+            pos_hint: {"top": 0.4, "right": 0.98}
+            text_color : [1,1,1,1]
+            md_bg_color: rgba(66,133,244,0.1)
+            on_release:
+                app.test()
+
+        #MDLabel:
+         #   id: 'position'
+          #  size_hint_y: None
+           # size_hint_x: 0.5
+            #text_size: self.width, None
+            #height: self.texture_size[1]
+            #spacing:"5dp"
+            #text_color:[0,0,0,0]
+            #pos_hint: {"top": 0.98, "right": 0.53}
+            #font_style:"H6"
+            #text : "4.12122122\n2.122222122"
+
+
+        MDToolbar:
+            id:position
+            pos_hint: {"top": 0.08, "right": 1}
+            title: "Votre posiitonkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+            left_action_items: [['settings', lambda x: app.open_settings_popup()]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

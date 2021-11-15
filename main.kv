@@ -1,0 +1,18 @@
+#:include homescreen.kv
+#:include routescreen.kv
+
+Screen:
+    NavigationLayout :
+        ScreenManager :
+            id: screen_manager
+            size_hint: 1, 1
+            pos_hint: {"top": 1, "left": 1}
+
+            HomeScreen:
+                name: "home_screen"
+                id: home_screen
+
+            RouteScreen:
+                name: "route_screen"
+                id: route_screen
+

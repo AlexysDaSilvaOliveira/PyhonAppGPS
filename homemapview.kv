@@ -1,0 +1,16 @@
+#:import MapView kivy_garden.mapview.MapView
+#:import GpsBlinker gpsblinker.GpsBlinker
+#:include gpsblinker.kv
+
+<HomeMapView>:
+    lat: 44.3603999922373
+    lon: 2.575843426265557
+    zoom: 12
+    double_tap_zoom: True
+    on_zoom:
+        self.zoom = 12 if self.zoom < 12 else self.zoom # set minimum zoom = 12
+    GpsBlinker:
+        lat: root.lat
+        lon: root.lon
+        id: blinker
+
