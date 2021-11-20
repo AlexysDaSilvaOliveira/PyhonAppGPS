@@ -59,11 +59,6 @@ class HomeGpsHelper():
         else:
             print("Open gps access popup")
             App.get_running_app().root.ids.home_screen.ids.gpsStatus.icon = "map-marker-off"
-            try:
-                self.run_dialog()
-            except:
-                print("error")
-                pass
 
     def run_dialog(self, *args):
         self.dialog = MDDialog(title="GPS", text="Le GPS n'est pas activé",
