@@ -5,7 +5,7 @@
 
         MDCard:
             size_hint_y:None
-            height:"200dp"
+            height:"230dp"
             orientation:"vertical"
             padding:"5dp"
 
@@ -16,19 +16,21 @@
                     on_release:
                         app.change_screen("home_screen")
 
-            TwoLineIconListItem:
+            ThreeLineIconListItem:
                 id:adresseAct
                 text_color: 1,0,1,1
                 text: "Ma position"
                 divider:None
-                secondary_text: "Départ"
+                secondary_text: "test"
+                tertiary_text:"Départ"
                 IconLeftWidget:
                     icon: "home-circle-outline"
 
-            TwoLineIconListItem:
+            ThreeLineIconListItem:
                 id:adresseDest
                 text: "Entrer une adresse"
-                secondary_text: "Arrivée"
+                secondary_text: "test"
+                tertiary_text:"Arrivée"
                 IconLeftWidget:
                     icon: "map-marker-radius"
 
@@ -50,6 +52,7 @@
                 id:distTemps
                 text_color: 1,0,1,1
                 text: "42km"
+                divider:None
                 secondary_text: "42min"
                 IconLeftWidget:
                     icon: "map-marker-distance"

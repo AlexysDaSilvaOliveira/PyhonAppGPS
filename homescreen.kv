@@ -64,25 +64,12 @@
             text_color : [1,1,1,1]
             md_bg_color: rgba(66,133,244,0.1)
             on_release:
-                app.test()
-
-        #MDLabel:
-         #   id: 'position'
-          #  size_hint_y: None
-           # size_hint_x: 0.5
-            #text_size: self.width, None
-            #height: self.texture_size[1]
-            #spacing:"5dp"
-            #text_color:[0,0,0,0]
-            #pos_hint: {"top": 0.98, "right": 0.53}
-            #font_style:"H6"
-            #text : "4.12122122\n2.122222122"
+                app.check_gps_status()
 
 
         MDToolbar:
             id:position
-            pos_hint: {"top": 0.08, "right": 1}
-            title: "Votre posiitonkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+            title: "position"
             left_action_items: [['settings', lambda x: app.open_settings_popup()]]
 
 

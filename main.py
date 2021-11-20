@@ -14,11 +14,14 @@ from kivymd.uix.snackbar import Snackbar
 from kivy.metrics import dp
 from kivy_garden.mapview import MapMarker
 from marker import Marker
+import certifi
+import os
+os.environ['SSL_CERT_FILE'] = certifi.where()
 
 
 
 from kivy.core.window import Window
-Window.size = (375, 750)
+#Window.size = (375, 750)
 
 class HomeScreen(Screen):
     pass
@@ -55,7 +58,7 @@ class MainApp(MDApp):
         else:
             adresse = adresse.replace(" ", "+")  # remplace les espaces par des '+'
             search_menu = SearchPopupMenu()
-            SearchPopupMenu.geocode_get_long_lat(search_menu, adresse)
+            SearchPopupMenu.call_geocode(search_menu, adresse)
             self.delete_search()
 
     #supprime le contenu de la barre de recherche
@@ -101,6 +104,14 @@ class MainApp(MDApp):
 
     def open_settings_popup(self):
         pass
+
+    def check_gps_status(self):
+        if App.get_running_app().root.ids.home_screen.ids.gpsStatus.icon == "map-marker-off":
+            Snackbar(text="GPS désactivé", snackbar_x="10dp", snackbar_y="10dp",
+                     size_hint_x=(Window.width - (dp(10) * 2)) / Window.width).open()
+        else:
+            Snackbar(text="GPS activé", snackbar_x="10dp", snackbar_y="10dp",
+                     size_hint_x=(Window.width - (dp(10) * 2)) / Window.width).open()
 
 
 

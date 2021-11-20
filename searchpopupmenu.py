@@ -1,3 +1,4 @@
+import urllib
 
 from homegpshelper import HomeGpsHelper
 from kivymd.uix.dialog import MDInputDialog
@@ -7,15 +8,17 @@ from kivy.app import App
 from kivymd.uix.snackbar import Snackbar
 from kivy.core.window import Window
 from kivy.metrics import dp
-from kivymd.uix.list import ThreeLineIconListItem
-from kivymd.uix.list import TwoLineIconListItem
+from kivymd.uix.list import ThreeLineAvatarIconListItem
+from kivymd.uix.list import TwoLineAvatarIconListItem
 from kivymd.uix.list import IconLeftWidget
 from time import strftime
-from time import gmtime
 import time
-from marker import Marker
 from kivy_garden.mapview import MapMarker
-from routemapview import RouteMapView
+
+import geopy
+from geopy import Nominatim
+
+
 
 
 
@@ -24,12 +27,25 @@ class SearchPopupMenu(MDInputDialog):
     title = "Saisisez l'adresse de destination"
     text_button_ok = "Y-aller"
 
-    #variables globales
-    global latDes, lonDes, adresseComplete, codePostalOrigin, app_code
-    latDes = 0
-    lonDes = 0
-    adresseComplete = ""
+
+    #adresse origine
+    global codePostalOrigin
+
+    #adresse de destination
+    global latDes, lonDes, adresseCompleteDes, codePostalDes
+    adresseCompleteDes = []
+
+    #api nominatim
+    global headerURL
+
+    headerURL = {
+        'User-Agent': 'PythonApp'
+    }
+
+
+    global app_code
     app_code = "Y9SQb-wvJonInc2hvZ7_32hQqPpWlexBbOvwyyo5QX4"  # code api
+
 
     def __init__(self):
         super().__init__()
@@ -38,15 +54,14 @@ class SearchPopupMenu(MDInputDialog):
 
 ########################################################################################################################
     #Déroulement des évenements
-    #1- appel à l'api here pour obtenir les coordonnées de l'adresse voulue avec 'geocode_get_long_lat'
-    #2-traitement de l'appel à l'api, si réussite appel, traitement données dans 'success_geocode'
-    #3-vérification des codes postaux de la position actuelle et de la position demandée via success_verif_post_code
-    #4-récupération de l'itinéraire dans 'define_route'
-    #5-ouverture de la page présentant l'itinéraire
+    #1-
+    #2-
+    #3-
+    #4-
+    #5-
 
 
     def callback(self, *args):
-
 
         # méthode appellee lors du click sur le bouton 'Y-aller'
         adresse = self.text_field.text
@@ -55,78 +70,98 @@ class SearchPopupMenu(MDInputDialog):
             Snackbar(text="Veuillez entrer une adresse", snackbar_x="10dp", snackbar_y="10dp",
                      size_hint_x=(Window.width - (dp(10) * 2)) / Window.width).open()
         else:
-            adresse = adresse.replace(" ", "+")  # remplace les espaces par des '+'
-            self.geocode_get_long_lat(adresse)
-
-    #retourne la position demandée par l'utilisateur en geocode
-    def geocode_get_long_lat(self, adresse):
-        # on vérifie si la position actuelle est connue
-        if App.get_running_app().root.ids.home_screen.ids.gpsStatus.icon == "map-marker-off":
-            Snackbar(text="Impossible de récupérer votre position actuelle.", snackbar_x="10dp", snackbar_y="10dp",
-                     size_hint_x=(Window.width - (dp(10) * 2)) / Window.width).open()
-        else:
-
-            url = "https://geocoder.ls.hereapi.com/6.2/geocode.json?apiKey=" + app_code + "&searchtext=" + adresse
-            print("GEOCODE URL : ", url)
-            UrlRequest(url, on_success=self.success_geocode, on_failure=self.failure_geocode, on_error=self.error_geocode)  # appel URL
+            #si le gps est activé
+            if App.get_running_app().root.ids.home_screen.ids.gpsStatus.icon == "map-marker-off":
+                Snackbar(text="Impossible de récupérer votre position actuelle.", snackbar_x="10dp", snackbar_y="10dp",
+                         size_hint_x=(Window.width - (dp(10) * 2)) / Window.width).open()
+            else:
+                adresse = adresse.replace(" ", "+")  # remplace les espaces par des '+'
+                adresse = urllib.parse.quote(adresse, safe="")
+                self.call_geocode(adresse)
 
 
     ####### Méthode pour la requete qui récupère les coordonnées de l'adresse souhaitée
-    #lors du succès de geocodeGEtLongLat
+    #lors du succès de callback
+    def call_geocode(self,adresse):
+        urlGeocode = "https://nominatim.openstreetmap.org/search?q="+adresse+"&format=json&addressdetails=1"
+        print(urlGeocode)
+        UrlRequest(urlGeocode,
+                   on_success=self.success_geocode,
+                   on_failure=self.failure_geocode,
+                   on_error=self.error_geocode,
+                   req_headers=headerURL)
+
     def success_geocode(self, urlrequest, result):
-        print("GEOCODE SUCCES")
+        print("GEOCODE SUCCES ",urlrequest)
 
         # succes de l'appel URL
-        #try:
-        if len(result['Response']['View']) > 0:
-            for i in range(0, len(result['Response']['View'][0]['Result'])):
-                if result['Response']['View'][0]['Result'][0]['Location']['Address']['Country'] == "FRA":
-                    global latDes
-                    latDes = result['Response']['View'][0]['Result'][0]['Location']['NavigationPosition'][0]['Latitude']
+        try:
+            if len(result) > 0:
 
-                    global lonDes
-                    lonDes = result['Response']['View'][0]['Result'][0]['Location']['NavigationPosition'][0]['Longitude']
+                global latDes
+                latDes = result[0]['lat']
 
-                    global adresseComplete
-                    adresseComplete = result['Response']['View'][0]['Result'][0]['Location']['Address']['Label']
+                global lonDes
+                lonDes = result[0]['lon']
 
-                    global codePostalOrigin
-                    codePostalOrigin = result['Response']['View'][0]['Result'][0]['Location']['Address']['PostalCode']
+                global adresseCompleteDes
+                adresseCompleteDes = []
+                if "house_number" in result[0]["address"]:
+                    if "road" in result[0]["address"]:
+                        adresseCompleteDes.append(
+                            result[0]["address"]['house_number'] + " " + result[0]["address"]['road'])
+                    else:
+                        adresseCompleteDes.append("")
+                else:
+                    if "road" in result[0]["address"]:
+                        adresseCompleteDes.append(result[0]["address"]['road'])
+                    else:
+                        adresseCompleteDes.append("")
 
-            if(latDes == 0 and lonDes == 0):
-                Snackbar(text="Aucun résultat proche", snackbar_x="10dp", snackbar_y="10dp",
-                         size_hint_x=(Window.width - (dp(10) * 2)) / Window.width).open()
-            else:
-                print("GOECODE RES :", adresseComplete, lonDes, latDes, codePostalOrigin)
+
+                if "postcode" in result[0]["address"]:
+                    if "town" in result[0]["address"]:
+                        adresseCompleteDes.append(
+                            result[0]["address"]['postcode'] + " " + result[0]["address"]['town'])
+                    else:
+                        adresseCompleteDes.append(result[0]["address"]['postcode'])
+                else:
+                    if "road" in result[0]["address"]:
+                        adresseCompleteDes.append(result[0]["address"]['road'])
+                    else:
+                        adresseCompleteDes.append("")
+
+
+                global codePostalDes
+                codePostalDes = result[0]['address']['postcode']
+
+                print("GOECODE RES :", adresseCompleteDes, lonDes, latDes, codePostalDes)
                 print("COORDONNEES ACTUELLES :", HomeGpsHelper.get_lat(self), HomeGpsHelper.get_long(self))
 
                 #vérification des codes postaux
-
-                urlCodePostaux = "https://revgeocode.search.hereapi.com/v1/revgeocode?apiKey="+app_code+"&at="\
-                                +str(HomeGpsHelper.get_lat(self))\
-                                +","\
-                                +str(HomeGpsHelper.get_long(self))
-                print("CODE POSTAUX URL : ",urlCodePostaux)
+                urlCodePostaux = "https://nominatim.openstreetmap.org/reverse?format=json&"\
+                                 "lat="+str(HomeGpsHelper.get_lat(self))+\
+                                 "&lon="+str(HomeGpsHelper.get_long(self))+\
+                                 "&addressdetails=1"
+                print("CODE POSTAUX URL : ", urlCodePostaux)
 
                 UrlRequest(urlCodePostaux,
                            on_success=self.success_verif_post_code,
                            on_failure=self.failure_verif_post_code,
-                           on_error=self.error_verif_post_code)
+                           on_error=self.error_verif_post_code,
+                           req_headers=headerURL)
 
-
-
-
-        else:
-            Snackbar(text="Aucune adresse correspondante n'a été trouvée", snackbar_x="10dp", snackbar_y="10dp",
-                    size_hint_x=(Window.width - (dp(10) * 2)) / Window.width).open()
-        #except:
-         #   Snackbar(text="Une erreur est survenue pendant la recherche", snackbar_x="10dp", snackbar_y="10dp",
-          #        size_hint_x=(Window.width - (dp(10) * 2)) / Window.width).open()
+            else:
+                Snackbar(text="Aucune adresse correspondante n'a été trouvée", snackbar_x="10dp", snackbar_y="10dp",
+                        size_hint_x=(Window.width - (dp(10) * 2)) / Window.width).open()
+        except:
+            Snackbar(text="Une erreur est survenue pendant la recherche", snackbar_x="10dp", snackbar_y="10dp",
+            size_hint_x=(Window.width - (dp(10) * 2)) / Window.width).open()
 
     #lors de l'échec de geocodeGEtLongLat
     def failure_geocode(self, urlrequest, result):
         # echec de l'appel URL
-        print("GEOCODE ECHEC")
+        print("GEOCODE ECHEC",urlrequest)
         print(result)
 
         Snackbar(text="Une erreur est survenue.", snackbar_x="10dp", snackbar_y="10dp",
@@ -135,7 +170,7 @@ class SearchPopupMenu(MDInputDialog):
     # si erreur lors de l'appel à geocodeGEtLongLat
     def error_geocode(self, urlrequest, result):
         # erreur de l'appel URL
-        print("GEOCODE ERREUR")
+        print("GEOCODE ERREUR",urlrequest)
         print(result)
 
         Snackbar(text="Une erreur est survenue.", snackbar_x="10dp", snackbar_y="10dp",
@@ -144,23 +179,26 @@ class SearchPopupMenu(MDInputDialog):
 
     ####### Méthodes pour la requete qui vérifie les codes postaux
     def success_verif_post_code(self, urlrequest, result):
-        print("VERIF CODE POSTAUX SUCCES")
-        codePostal = result["items"][0]["address"]["postalCode"]
-        libAdressAct = result["items"][0]["address"]["label"]
+        print("VERIF CODE POSTAUX SUCCES",urlrequest)
+        codePostal = result["address"]["postcode"]
 
-        if codePostal == codePostalOrigin :
+        libAdressAct = []
+        libAdressAct.append(result["address"]['house_number'] + " " + result["address"]['road'])
+        libAdressAct.append(result["address"]['postcode'] + " " + result["address"]['town'])
+
+        if codePostal == codePostalDes :
             # appel au WS pour calcul de l'itinéraire via méthode 'define_route'
             self.define_route(HomeGpsHelper.get_long(self), HomeGpsHelper.get_lat(self), lonDes, latDes,
-                              adresseComplete, libAdressAct)
+                              adresseCompleteDes, libAdressAct)
         else:
-            Snackbar(text="L'adresse demandée n'est pas dans la même région", snackbar_x="10dp", snackbar_y="10dp",
+            Snackbar(text="L'adresse demandée n'est pas dans la même région", snackbar_x="20dp", snackbar_y="20dp",
                      size_hint_x=(Window.width - (dp(10) * 2)) / Window.width).open()
 
 
     #echec de l'appel au WS pour l'itinéraire
     def failure_verif_post_code(self,urlrequest, result):
         # echec de l'appel URL
-        print("VERIF CODE POSTAUX ECHEC")
+        print("VERIF CODE POSTAUX ECHEC",urlrequest)
         print(result)
 
         Snackbar(text="Une erreur est survenue.", snackbar_x="10dp", snackbar_y="10dp",
@@ -169,7 +207,7 @@ class SearchPopupMenu(MDInputDialog):
     #erreur lors de l'appel au WS pour l'itinéraire
     def error_verif_post_code(self, urlrequest, result):
         # erreur de l'appel URL
-        print("VERIF CODE POSTAUX ERREUR")
+        print("VERIF CODE POSTAUX ERREUR",urlrequest)
         print(result)
 
         Snackbar(text="Une erreur est survenue.", snackbar_x="10dp", snackbar_y="10dp",
@@ -187,8 +225,10 @@ class SearchPopupMenu(MDInputDialog):
             print("DEFINE ROUTE URL : ", routeUrl)
 
             # mise a jour des infos sur la position actuelle et la destination
-            App.get_running_app().root.ids.route_screen.ids.adresseAct.text = libAdressAct
-            App.get_running_app().root.ids.route_screen.ids.adresseDest.text = adreseDest
+            App.get_running_app().root.ids.route_screen.ids.adresseAct.text = libAdressAct[0]
+            App.get_running_app().root.ids.route_screen.ids.adresseAct.secondary_text = libAdressAct[1]
+            App.get_running_app().root.ids.route_screen.ids.adresseDest.text = adreseDest[0]
+            App.get_running_app().root.ids.route_screen.ids.adresseDest.secondary_text = adreseDest[1]
 
             # Appel l'url du WS
             UrlRequest(routeUrl, on_success=self.success_route, on_failure=self.failure_route,
@@ -196,7 +236,7 @@ class SearchPopupMenu(MDInputDialog):
 
     #succès de l'appel au WS pour l'itinéraire
     def success_route(self, urlrequest, result):
-        print("ROUTE SUCCES")
+        print("ROUTE SUCCES",urlrequest)
 
         if result["code"] == "Ok": #si le WS a renvoyé un code "Ok" = un itinéraire est disponible
 
@@ -213,7 +253,6 @@ class SearchPopupMenu(MDInputDialog):
 
             #temps
             if temps >= 3600:
-                print(strftime("%H h %M",time.gmtime(temps)))
                 App.get_running_app().root.ids.route_screen.ids.distTemps.text = strftime("%H h %M",
                                                                                                     time.gmtime(temps))
             elif temps >= 60:
@@ -228,17 +267,12 @@ class SearchPopupMenu(MDInputDialog):
             type = ""
             distanceEtape = ""  # la distance à parcourir avant la prochaine étape
             icon = ""
+            icon2 = ""
             name = ""
 
             etapeItineraire = App.get_running_app().root.ids.route_screen.ids.etapesItineraire #la grille qui contient toute les étapes
             for i in range(0, len(result["routes"][0]["legs"][0]["steps"])):
 
-                if i == 0:
-                    icon = IconLeftWidget(icon = "source-commit-start")
-                elif i+1 == len(result["routes"][0]["legs"][0]["steps"]):
-                    icon = IconLeftWidget(icon = "source-commit-end")
-                else:
-                    icon = IconLeftWidget(icon = "source-commit")
 
 
                 #modifier = le type de diretion à prendre
@@ -247,24 +281,31 @@ class SearchPopupMenu(MDInputDialog):
 
                     if modifierMatch == "left":
                         modifier = " à gauche"
+                        icon = IconLeftWidget(icon="icons/left.png")
 
                     elif modifierMatch == "slight left":
                         modifier = " légèrement à gauche"
+                        icon = IconLeftWidget(icon="icons/slight_left.png")
 
                     elif modifierMatch ==  "sharp left":
                         modifier = " complètement à gauche"
+                        icon = IconLeftWidget(icon="icons/left.png")
 
                     elif modifierMatch ==  "right":
                         modifier = " à droite"
+                        icon = IconLeftWidget(icon="icons/right.png")
 
                     elif modifierMatch ==  "sharp right":
                         modifier = " complètement à droite"
+                        icon = IconLeftWidget(icon="icons/right.png")
 
                     elif modifierMatch ==  "slight right":
                         modifier = " légèrement à doite"
+                        icon = IconLeftWidget(icon="icons/slight_right.png")
 
                     elif modifierMatch ==  "straight":
                         modifier = " tout droit"
+                        icon = IconLeftWidget(icon="icons/straight.png")
 
                     else:
                         #defaut
@@ -315,34 +356,44 @@ class SearchPopupMenu(MDInputDialog):
                     name = "sur "+result["routes"][0]["legs"][0]["steps"][i]["name"]
 
 
+                #icons
+                if i == 0:
+                    icon = IconLeftWidget(icon = "icons/depart.png")
+
+                elif i+1 == len(result["routes"][0]["legs"][0]["steps"]):
+                    icon = IconLeftWidget(icon = "icons/finish.png")
+                else:
+                    icon = icon
+
+                # ajout des étapes
                 if type == "Démarrez":
                     #démarrage du parcours
                     if name == "":
                         #pas de nom de rue de départ
-                        item = TwoLineIconListItem(text="Départ", secondary_text=distanceEtape)
+                        item = TwoLineAvatarIconListItem(text="Départ", secondary_text=distanceEtape)
                         item.add_widget(icon)
                         etapeItineraire.add_widget(item)
                     else:
                         #nom de rue de départ
-                        item = ThreeLineIconListItem(text=type, secondary_text=name,tertiary_text=distanceEtape)
+                        item = ThreeLineAvatarIconListItem(text=type, secondary_text=name,tertiary_text=distanceEtape)
                         item.add_widget(icon)
                         etapeItineraire.add_widget(item)
 
                 elif type == "Arrivez":
                     #fin du parcours
-                    item = TwoLineIconListItem(text="Arrivée", secondary_text=distanceEtape)
+                    item = TwoLineAvatarIconListItem(text="Arrivée", secondary_text=distanceEtape)
                     item.add_widget(icon)
                     etapeItineraire.add_widget(item)
                 else:
                     #etape du parcours
                     if(name != ""):
                         #un nom de rue est présent
-                        item = ThreeLineIconListItem(text=type+modifier, secondary_text=name,tertiary_text=distanceEtape)
+                        item = ThreeLineAvatarIconListItem(text=type+modifier, secondary_text=name,tertiary_text=distanceEtape)
                         item.add_widget(icon)
                         etapeItineraire.add_widget(item)
                     else:
                         #pas de nom  de rue
-                        item = TwoLineIconListItem(text=type +modifier, secondary_text=distanceEtape)
+                        item = TwoLineAvatarIconListItem(text=type +modifier, secondary_text=distanceEtape)
                         item.add_widget(icon)
                         etapeItineraire.add_widget(item)
 
@@ -366,7 +417,7 @@ class SearchPopupMenu(MDInputDialog):
     #echec de l'appel au WS pour l'itinéraire
     def failure_route(self,urlrequest, result):
         # echec de l'appel URL
-        print("ROUTE ECHEC")
+        print("ROUTE ECHEC",urlrequest)
         print(result)
 
         Snackbar(text="Une erreur est survenue.", snackbar_x="10dp", snackbar_y="10dp",
@@ -375,7 +426,7 @@ class SearchPopupMenu(MDInputDialog):
     #erreur lors de l'appel au WS pour l'itinéraire
     def error_route(self, urlrequest, result):
         # erreur de l'appel URL
-        print("ROUTE ERREUR")
+        print("ROUTE ERREUR",urlrequest)
         print(result)
 
         Snackbar(text="Une erreur est survenue.", snackbar_x="10dp", snackbar_y="10dp",
