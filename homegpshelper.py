@@ -66,7 +66,7 @@ class HomeGpsHelper():
                 pass
 
     def run_dialog(self, *args):
-        self.dialog = MDDialog(title="GPS Error", text="You need to enable GPS access for the app to function properly",
+        self.dialog = MDDialog(title="GPS", text="Le GPS n'est pas activé",
                                size_hint=(0.5, 0.5))
         self.dialog.pos_hint = {'center_x': .5, 'center_y': .5}
         self.dialog.open()

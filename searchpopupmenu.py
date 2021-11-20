@@ -15,9 +15,6 @@ from time import strftime
 import time
 from kivy_garden.mapview import MapMarker
 
-import geopy
-from geopy import Nominatim
-
 
 
 
@@ -402,6 +399,10 @@ class SearchPopupMenu(MDInputDialog):
                                 result["routes"][0]["legs"][0]["steps"][i]["maneuver"]["location"][0],
                                 i,
                                 len(result["routes"][0]["legs"][0]["steps"]))
+
+            #centrage de la map de routescreen.kv
+            App.get_running_app().root.ids.route_screen.ids.mapview.center_on\
+            (HomeGpsHelper.get_lat(self), HomeGpsHelper.get_long(self))
 
             # affichage de l'écran pour l'itinéraire
             self.change_screen("route_screen")
