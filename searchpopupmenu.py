@@ -40,23 +40,12 @@ class SearchPopupMenu(MDInputDialog):
     }
 
 
-    global app_code
-    app_code = "Y9SQb-wvJonInc2hvZ7_32hQqPpWlexBbOvwyyo5QX4"  # code api
-
-
     def __init__(self):
         super().__init__()
         self.size_hint = [.9, .25]
         self.events_callback = self.callback
 
-########################################################################################################################
-    #Déroulement des évenements
-    #1-
-    #2-
-    #3-
-    #4-
-    #5-
-
+#######################################################################################################################
 
     def callback(self, *args):
 
@@ -218,8 +207,9 @@ class SearchPopupMenu(MDInputDialog):
     def define_route(self, lonOrigin, latOrigin, lonDest, lattDest, adreseDest, libAdressAct):
             routeUrl = "https://routing.openstreetmap.de/routed-foot/route/v1/driving/" + str(lonOrigin) + "," + str(
                 latOrigin) + ";" + str(lonDest) + "," + str(lattDest) + "?overview=false&geometries=polyline&steps=true"
-            # routeUrl = "https://routing.openstreetmap.de/routed-foot/route/v1/driving/2.5621,44.3498;2.5764,44.36?overview=false&geometries=polyline&steps=true"; #TODO supprimer l'url de test
+            # routeUrl = "https://routing.openstreetmap.de/routed-foot/route/v1/driving/2.565893,44.351449;2.5764,44.36?overview=false&geometries=polyline&steps=true";
             print("DEFINE ROUTE URL : ", routeUrl)
+
 
             # mise a jour des infos sur la position actuelle et la destination
             App.get_running_app().root.ids.route_screen.ids.adresseAct.text = libAdressAct[0]

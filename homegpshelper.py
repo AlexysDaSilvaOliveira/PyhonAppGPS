@@ -7,19 +7,20 @@ class HomeGpsHelper():
     dialog = None
 
     global lattitude
+    #coordoonées par défaut sur Rodez
     lattitude = 44.3603999922373
 
     global longitude
     longitude = 2.575843426265557
 
     def run(self):
-        # Get a reference to GpsBlinker, then call blink()
+        # Référence au blinker
         home_gps_blinker = App.get_running_app().root.ids.home_screen.ids.mapview.ids.blinker
 
-        # Start blinking the GpsBlinker
+        # on démarre l'animation du blinker
         home_gps_blinker.blink()
 
-        # Request permissions on Android
+        # Permissions pour Android
         if platform == 'android':
             from android.permissions import Permission, request_permissions
             def callback(permission, results):
@@ -36,6 +37,7 @@ class HomeGpsHelper():
                                  Permission.INTERNET,
                                  Permission.ACCESS_FINE_LOCATION], callback)
 
+    #màj de la position du blinker en fonction de la position de l'utilsateur
     def update_blinker_position(self, *args, **kwargs):
         global lattitude
         lattitude = kwargs['lat']
@@ -44,11 +46,12 @@ class HomeGpsHelper():
         longitude = kwargs['lon']
 
         print("GPS POSITION", lattitude, longitude)
-        # Update GpsBlinker position
+        # màj de la position du blinker
         home_gps_blinker = App.get_running_app().root.ids.home_screen.ids.mapview.ids.blinker
         home_gps_blinker.lat = lattitude
         home_gps_blinker.lon = longitude
 
+        #affichage des coordonnées de l'utilisateur
         App.get_running_app().root.ids.home_screen.ids.position.title = str(lattitude) +" ; "+str(longitude)
 
     def on_auth_status(self, general_status, status_message):
@@ -59,13 +62,6 @@ class HomeGpsHelper():
         else:
             print("Open gps access popup")
             App.get_running_app().root.ids.home_screen.ids.gpsStatus.icon = "map-marker-off"
-
-    def run_dialog(self, *args):
-        self.dialog = MDDialog(title="GPS", text="Le GPS n'est pas activé",
-                               size_hint=(0.5, 0.5))
-        self.dialog.pos_hint = {'center_x': .5, 'center_y': .5}
-        self.dialog.open()
-        self.dialog = None
 
     def get_lat(self):
         return lattitude

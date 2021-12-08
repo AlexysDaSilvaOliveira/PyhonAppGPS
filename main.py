@@ -1,6 +1,5 @@
 from kivymd.app import MDApp
 from kivy.app import App
-from specialbuttons import LabelButton, ImageButton
 from kivy.uix.screenmanager import Screen, NoTransition, CardTransition
 from searchpopupmenu import SearchPopupMenu
 from homegpshelper import HomeGpsHelper
@@ -71,12 +70,6 @@ class MainApp(MDApp):
         if App.get_running_app().root.ids.home_screen.ids.delete_search.icon == "":
             App.get_running_app().root.ids.home_screen.ids.delete_search.icon = "close-circle-outline"
 
-    def test(self):
-        if App.get_running_app().root.ids.home_screen.ids.gpsStatus.icon == "map-marker-off":
-            App.get_running_app().root.ids.home_screen.ids.gpsStatus.icon = "map-marker-check"
-        else:
-            App.get_running_app().root.ids.home_screen.ids.gpsStatus.icon = "map-marker-off"
-
     #pour changer d'écran
     def change_screen(self, screen_name):
         screenManager = self.root.ids.screen_manager
@@ -98,12 +91,10 @@ class MainApp(MDApp):
                 else:
                     continue
 
+    #centrage de la carte sur la position actuelle de l'utilisateur
     def center_map(self):
         map2 = App.get_running_app().root.ids.home_screen.ids.mapview
         map2.center_on(HomeGpsHelper.get_lat(self), HomeGpsHelper.get_long(self))
-
-    def open_settings_popup(self):
-        pass
 
     def check_gps_status(self):
         if App.get_running_app().root.ids.home_screen.ids.gpsStatus.icon == "map-marker-off":
